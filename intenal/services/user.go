@@ -13,7 +13,7 @@ import (
 
 //IUserService is...
 type IUserService interface {
-	ConnectFriends(req *model.FriendConnectionRequest) (*model.BasicResponse, error)
+	ConnectFriends(req model.FriendConnectionRequest) (model.BasicResponse, error)
 	GetUser(email string) (model.User, error)
 	SendUpdate(sendRequest model.SendUpdateRequest) (model.SendUpdateResponse, error)
 	GetAllUsers() ([]model.User, error)
@@ -36,8 +36,8 @@ func NewManager(dbconn *sql.DB) *Store {
 }
 
 //ConnectFriends that func connect 2 user
-func (st *Store) ConnectFriends(req *model.FriendConnectionRequest) (*model.BasicResponse, error) {
-	basicResponse := &model.BasicResponse{}
+func (st *Store) ConnectFriends(req model.FriendConnectionRequest) (model.BasicResponse, error) {
+	basicResponse := model.BasicResponse{}
 	//var service IUserService
 	userA, errA := db.GetTheUser(st.dbconn, req.Friends[0])
 	userB, errB := db.GetTheUser(st.dbconn, req.Friends[1])

@@ -51,7 +51,7 @@ func ConnectFriends(service services.IUserService) http.HandlerFunc {
 			w.Write([]byte("Request body is invalid"))
 			return
 		}
-		basicResponse, err1 := service.ConnectFriends(&req)
+		basicResponse, err1 := service.ConnectFriends(req)
 		if err1 != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err1.Error()))

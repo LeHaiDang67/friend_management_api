@@ -1,213 +1,323 @@
 package services
 
-//TestGetUser test GetUser func
-// func TestGetUser(t *testing.T) {
-// 	testCases := []struct {
-// 		desc           string
-// 		givenUserEmail string
-// 		expectedResult model.User
-// 		expectedError  *feature.ResponseError
-// 	}{
-// 		{
-// 			desc:           "Retrieve success",
-// 			givenUserEmail: "tom@example.com",
-// 		},
-// 		{
-// 			desc:           "Retrieve error",
-// 			givenUserEmail: "andy@example.com",
-// 		},
-// 	}
+import (
+	"errors"
+	"friend_management/intenal/db"
+	"friend_management/intenal/model"
+	"friend_management/intenal/util"
+	"testing"
 
-// 	for _, i := range testCases {
-// 		db := db.InitDatabase()
-// 		defer db.Close()
-// 		t.Run(i.desc, func(t *testing.T) {
-// 			email := i.givenUserEmail
-// 			result, err := repo.GetUser(db, email)
-// 			if err != nil {
-// 				require.Equal(t, i.expectedError, err)
-// 			} else {
-// 				require.Nil(t, err)
-// 				require.Equal(t, i.expectedResult, result)
-// 			}
-// 		})
-// 	}
-// }
+	"github.com/stretchr/testify/require"
+)
 
-// func TestConnectFriends(t *testing.T) {
-// 	testCases := []struct {
-// 		desc           string
-// 		friendArray    []string
-// 		expectedResult bool
-// 		expectedError  *feature.ResponseError
-// 	}{
-// 		{
-// 			desc:           "Retrieve success",
-// 			friendArray:    []string{"andy@example.com", "dang@example.com"},
-// 			expectedResult: true,
-// 		},
-// 	}
+func TestGetAllUser(t *testing.T) {
+	db := db.InitDatabase()
+	defer db.Close()
+	testCase := struct {
+		name           string
+		expectedResult []model.User
+	}{
+		name:           "Get users success",
+		expectedResult: []model.User([]model.User{model.User{Email: "c@gmail.com", Friends: []string(nil), Subscription: []string(nil), Blocked: []string(nil)}, model.User{Email: "a@gmail.com", Friends: []string{"b@gmail.com"}, Subscription: []string(nil), Blocked: []string(nil)}, model.User{Email: "b@gmail.com", Friends: []string{"a@gmail.com"}, Subscription: []string(nil), Blocked: []string(nil)}, model.User{Email: "test-email@gmail.com", Friends: []string{"hero@gmail.com"}, Subscription: []string(nil), Blocked: []string(nil)}}),
+	}
+	//require.NoError(t, util.LoadFixture(db, "./testdata/01_get_user.sql"))
+	t.Run(testCase.name, func(t *testing.T) {
+		mn := NewManager(db)
+		result, err := mn.GetAllUsers()
+		require.Nil(t, err)
+		require.Equal(t, testCase.expectedResult, result)
+	})
+}
 
-// 	for _, i := range testCases {
-// 		db := db.InitDatabase()
-// 		defer db.Close()
-// 		t.Run(i.desc, func(t *testing.T) {
-// 			var ConnectRequest model.FriendConnectionRequest
-// 			ConnectRequest.Friends = i.friendArray
-// 			result, err := repo.ConnectFriends(db, ConnectRequest)
-// 			if err != nil {
-// 				require.Error(t, err, i.expectedError)
-// 			} else {
-// 				require.Nil(t, err)
-// 				require.Equal(t, i.expectedResult, result.Success)
-// 			}
-// 		})
-// 	}
-// }
+func TestGetUser(t *testing.T) {
+	db := db.InitDatabase()
+	defer db.Close()
+	testCases := []struct {
+		desc           string
+		givenUserEmail string
+		expectedResult model.User
+		expectedError  error
+	}{
+		{
+			desc:           "Should return user",
+			givenUserEmail: "a@gmail.com",
+			expectedResult: model.User{
+				Email:   "a@gmail.com",
+				Friends: []string{"b@gmail.com"},
+			},
+			expectedError: nil,
+		},
+		{
+			desc:           "Should return no user",
+			givenUserEmail: "andy@example.com",
+			expectedResult: model.User{},
+			expectedError:  errors.New("sad"),
+		},
+	}
+	require.NoError(t, util.LoadFixture(db, "./testdata/01_get_user.sql"))
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			mn := NewManager(db)
+			result, err := mn.GetUser(tc.givenUserEmail)
+			if err != nil {
+				require.Equal(t, tc.expectedError, err)
+			} else {
+				require.Nil(t, err)
+				require.Equal(t, tc.expectedResult, result)
+			}
+		})
+	}
+}
 
-// func TestFriendList(t *testing.T) {
-// 	testCase := []struct {
-// 		dest           string
-// 		givenUserEmail string
-// 		expectedResult bool
-// 		expectedError  *feature.ResponseError
-// 	}{
-// 		{
-// 			dest:           "Retrieve success ",
-// 			givenUserEmail: "andy@example.com",
-// 			expectedResult: true,
-// 		},
-// 	}
-// 	for _, i := range testCase {
-// 		db := db.InitDatabase()
-// 		defer db.Close()
-// 		result, err := repo.FriendList(db, i.givenUserEmail)
-// 		if err != nil {
-// 			require.Error(t, err, i.expectedError)
-// 		} else {
-// 			require.Nil(t, err)
-// 			require.Equal(t, i.expectedResult, result.Success)
-// 		}
-// 	}
-// }
+func TestConnectFriends(t *testing.T) {
+	db := db.InitDatabase()
+	defer db.Close()
+	testCases := []struct {
+		name           string
+		request        model.FriendConnectionRequest
+		expectedResult model.BasicResponse
+	}{
+		{
+			name: "Make friend successfully",
+			request: model.FriendConnectionRequest{
+				Friends: []string{"a@gmail.com", "b@gmail.com"},
+			},
+			expectedResult: model.BasicResponse{
+				Success: true,
+			},
+		},
+		{
+			name: "User not existed",
+			request: model.FriendConnectionRequest{
+				Friends: []string{"test1@gmail.com", "test2@gmail.com"},
+			},
+			expectedResult: model.BasicResponse{
+				Success: true,
+			},
+		},
+	}
+	require.NoError(t, util.LoadFixture(db, "./testdata/02_connect_friend.sql"))
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			mn := NewManager(db)
+			result, err := mn.ConnectFriends(tt.request)
+			// then
 
-// func TestCommonFriends(t *testing.T) {
-// 	testCase := []struct {
-// 		dest           string
-// 		commonFriends  []string
-// 		expectedResult bool
-// 		expectedError  *feature.ResponseError
-// 	}{
-// 		{
-// 			dest:           "Retrieve success",
-// 			commonFriends:  []string{"andy@example.com", "dang@example.com"},
-// 			expectedResult: true,
-// 		},
-// 	}
-// 	for _, i := range testCase {
-// 		db := db.InitDatabase()
-// 		defer db.Close()
-// 		var commonRequest model.CommonFriendRequest
-// 		commonRequest.Friends = i.commonFriends
+			require.Nil(t, err)
+			require.Equal(t, tt.expectedResult, result)
 
-// 		result, err := repo.CommonFriends(db, commonRequest)
-// 		if err != nil {
-// 			require.Error(t, err, i.expectedError)
-// 		} else {
-// 			require.Nil(t, err)
-// 			require.Equal(t, i.expectedResult, result.Success)
-// 		}
-// 	}
-// }
+		})
+	}
+}
 
-// func TestSubscription(t *testing.T) {
-// 	testCase := []struct {
-// 		dest             string
-// 		subscribeRequest model.SubscriptionRequest
-// 		expectedResult   bool
-// 		expectedError    *feature.ResponseError
-// 	}{
-// 		{
-// 			dest: "Retrieve success",
-// 			subscribeRequest: model.SubscriptionRequest{
-// 				Requestor: "tu@example.com",
-// 				Target:    "andy@example.com",
-// 			},
-// 			expectedResult: true,
-// 		},
-// 	}
-// 	for _, i := range testCase {
-// 		db := db.InitDatabase()
-// 		defer db.Close()
-// 		result, err := repo.Subscription(db, i.subscribeRequest)
-// 		if err != nil {
-// 			require.Error(t, err, i.expectedError)
-// 		} else {
-// 			require.Nil(t, err)
-// 			require.Equal(t, i.expectedResult, result.Success)
-// 		}
-// 	}
-// }
+func TestFriendList(t *testing.T) {
+	db := db.InitDatabase()
+	defer db.Close()
+	testCases := []struct {
+		name           string
+		givenUserEmail string
+		expectedResult model.FriendListResponse
+	}{
+		{
+			name:           "Retrieve success ",
+			givenUserEmail: "a@gmail.com",
+			expectedResult: model.FriendListResponse{
+				Success: true,
+				Friends: []string{"b@gmail.com"},
+				Count:   1,
+			},
+		},
+		{
+			name:           "Retrieve failed ",
+			givenUserEmail: "andy@example.com",
+			expectedResult: model.FriendListResponse{
+				Success: true,
+			},
+		},
+	}
+	require.NoError(t, util.LoadFixture(db, "./testdata/01_get_user.sql"))
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			mn := NewManager(db)
+			result, err := mn.FriendList(tt.givenUserEmail)
+			// then
 
-// func TestBlocked(t *testing.T) {
-// 	testCase := []struct {
-// 		dest           string
-// 		blockedRequest model.SubscriptionRequest
-// 		expectedResult bool
-// 		expectedError  *feature.ResponseError
-// 	}{
-// 		{
-// 			dest: "Retrieve success",
-// 			blockedRequest: model.SubscriptionRequest{
-// 				Requestor: "andy@example.com",
-// 				Target:    "john@example.com",
-// 			},
-// 			expectedResult: true,
-// 		},
-// 	}
-// 	for _, i := range testCase {
-// 		db := db.InitDatabase()
-// 		defer db.Close()
-// 		result, err := repo.Blocked(db, i.blockedRequest)
-// 		if err != nil {
-// 			require.Error(t, err, i.expectedError)
-// 		} else {
-// 			require.Nil(t, err)
-// 			require.Equal(t, i.expectedResult, result.Success)
-// 		}
-// 	}
-// }
+			require.Nil(t, err)
+			require.Equal(t, tt.expectedResult, result)
 
-// func TestSendUpdate(t *testing.T) {
-// 	testCase := []struct {
-// 		dest           string
-// 		sendRequest    model.SendUpdateRequest
-// 		expectedResult model.SendUpdateResponse
-// 		expectedError  *feature.ResponseError
-// 	}{
-// 		{
-// 			dest: "Retrieve success",
-// 			sendRequest: model.SendUpdateRequest{
-// 				Sender: "andy@example.com",
-// 				Text:   "Hello World! phuc@example.com",
-// 			},
-// 			expectedResult: model.SendUpdateResponse{
-// 				Success:    true,
-// 				Recipients: []string{"phuc@example.com", "tu@example.com", "dang@example.com"},
-// 			},
-// 		},
-// 	}
-// 	for _, i := range testCase {
-// 		db := db.InitDatabase()
-// 		defer db.Close()
-// 		result, err := repo.SendUpdate(db, i.sendRequest)
-// 		if err != nil {
-// 			require.Error(t, err, i.expectedError)
-// 		} else {
-// 			require.Nil(t, err)
-// 			require.Equal(t, i.expectedResult, result)
-// 		}
+		})
+	}
+}
 
-// 	}
+func TestCommonFriends(t *testing.T) {
+	db := db.InitDatabase()
+	defer db.Close()
+	testCases := []struct {
+		name           string
+		commonFriends  model.CommonFriendRequest
+		expectedResult model.FriendListResponse
+	}{
+		{
+			name: "Retrieve success",
+			commonFriends: model.CommonFriendRequest{
+				Friends: []string{"a@gmail.com", "b@gmail.com"},
+			},
+			expectedResult: model.FriendListResponse{
+				Success: true,
+				Friends: []string{"c@gmail.com"},
+				Count:   1,
+			},
+		},
+		{
+			name: "Users not existed",
+			commonFriends: model.CommonFriendRequest{
+				Friends: []string{"messi@gmail.com", "ronaldo@gmail.com"},
+			},
+			expectedResult: model.FriendListResponse{
+				Success: true,
+				Friends: []string{},
+				Count:   0,
+			},
+		},
+	}
+	require.NoError(t, util.LoadFixture(db, "./testdata/03_common_friend.sql"))
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			mn := NewManager(db)
+			result, err := mn.CommonFriends(tt.commonFriends)
+			// then
+			require.Nil(t, err)
+			require.Equal(t, tt.expectedResult, result)
 
-// }
+		})
+	}
+}
+
+func TestSubscription(t *testing.T) {
+	db := db.InitDatabase()
+	defer db.Close()
+	testCases := []struct {
+		name             string
+		subscribeRequest model.SubscriptionRequest
+		expectedResult   model.BasicResponse
+	}{
+		{
+			name: "Retrieve success",
+			subscribeRequest: model.SubscriptionRequest{
+				Requestor: "a@gmail.com",
+				Target:    "b@gmail.com",
+			},
+			expectedResult: model.BasicResponse{
+				Success: true,
+			},
+		},
+		{
+			name: "Users not existed",
+			subscribeRequest: model.SubscriptionRequest{
+				Requestor: "b@gmail.com",
+				Target:    "dang@gmail.com",
+			},
+			expectedResult: model.BasicResponse{
+				Success: true,
+			},
+		},
+	}
+	require.NoError(t, util.LoadFixture(db, "./testdata/02_connect_friend.sql"))
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			mn := NewManager(db)
+			result, err := mn.Subscription(tt.subscribeRequest)
+			// then
+			require.Nil(t, err)
+			require.Equal(t, tt.expectedResult, result)
+
+		})
+	}
+}
+
+func TestBlocked(t *testing.T) {
+	db := db.InitDatabase()
+	defer db.Close()
+	testCases := []struct {
+		name           string
+		blockedRequest model.SubscriptionRequest
+		expectedResult model.BasicResponse
+	}{
+		{
+			name: "Retrieve success",
+			blockedRequest: model.SubscriptionRequest{
+				Requestor: "a@gmail.com",
+				Target:    "b@gmail.com",
+			},
+			expectedResult: model.BasicResponse{
+				Success: true,
+			},
+		},
+		{
+			name: "Users not existed",
+			blockedRequest: model.SubscriptionRequest{
+				Requestor: "a@gmail.com",
+				Target:    "dang@gmail.com",
+			},
+			expectedResult: model.BasicResponse{
+				Success: true,
+			},
+		},
+	}
+	require.NoError(t, util.LoadFixture(db, "./testdata/02_connect_friend.sql"))
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			mn := NewManager(db)
+			result, err := mn.Blocked(tt.blockedRequest)
+			// then
+			require.Nil(t, err)
+			require.Equal(t, tt.expectedResult, result)
+
+		})
+	}
+}
+
+func TestSendUpdate(t *testing.T) {
+	db := db.InitDatabase()
+	defer db.Close()
+	testCases := []struct {
+		name           string
+		sendRequest    model.SendUpdateRequest
+		expectedResult model.SendUpdateResponse
+	}{
+		{
+			name: "Retrieve success",
+			sendRequest: model.SendUpdateRequest{
+				Sender: "a@gmail.com",
+				Text:   "Hello World! b@gmail.com",
+			},
+			expectedResult: model.SendUpdateResponse{
+				Success:    true,
+				Recipients: []string{"b@gmail.com"},
+			},
+		},
+		{
+			name: "Users not existed",
+			sendRequest: model.SendUpdateRequest{
+				Sender: "dang@gmail.com",
+				Text:   "Hello World! messi@gmail.com",
+			},
+			expectedResult: model.SendUpdateResponse{
+				Success:    true,
+				Recipients: []string{},
+			},
+		},
+	}
+	require.NoError(t, util.LoadFixture(db, "./testdata/03_common_friend.sql"))
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			mn := NewManager(db)
+			result, err := mn.SendUpdate(tt.sendRequest)
+			// then
+			require.Nil(t, err)
+			require.Equal(t, tt.expectedResult, result)
+
+		})
+	}
+
+}
