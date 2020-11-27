@@ -321,3 +321,41 @@ func TestSendUpdate(t *testing.T) {
 	}
 
 }
+
+func TestCreateNewUser(t *testing.T) {
+	db := db.InitDatabase()
+	defer db.Close()
+	testCases := []struct {
+		name           string
+		sendRequest    model.User
+		expectedResult model.BasicResponse
+	}{
+		{
+			name: "Retrieve success",
+			sendRequest: model.User{
+				Email: "a@gmail.com",
+			},
+			expectedResult: model.BasicResponse{
+				Success: true,
+			},
+		},
+		{
+			name:        "Retrieve faided",
+			sendRequest: model.User{},
+			expectedResult: model.BasicResponse{
+				Success: true,
+			},
+		},
+	}
+	require.NoError(t, util.LoadFixture(db, "./testdata/04_create_user.sql"))
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			mn := NewManager(db)
+			result, err := mn.CreateNewUser(tt.sendRequest)
+			// then
+			require.Nil(t, err)
+			require.Equal(t, tt.expectedResult, result)
+
+		})
+	}
+}
