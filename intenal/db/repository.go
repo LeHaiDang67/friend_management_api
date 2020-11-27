@@ -87,3 +87,14 @@ func CreateBlockedFriend(db *sql.DB, userRequestor, userTarget string) error {
 	result.RowsAffected()
 	return nil
 }
+
+//CreateNewUser is...
+func CreateNewUser(db *sql.DB, user model.User) error {
+	result, err := db.Exec("Insert into users(email) values($1);", user.Email)
+	if err != nil {
+		return err
+	}
+
+	result.RowsAffected()
+	return nil
+}

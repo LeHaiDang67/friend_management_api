@@ -21,6 +21,7 @@ type IUserService interface {
 	Subscription(subRequest model.SubscriptionRequest) (model.BasicResponse, error)
 	CommonFriends(commonFriends model.CommonFriendRequest) (model.FriendListResponse, error)
 	FriendList(email string) (model.FriendListResponse, error)
+	CreateNewUser(user model.User) (model.BasicResponse, error)
 }
 
 //Store is...
@@ -233,4 +234,16 @@ func AddFriends(db *sql.DB, emailFriend string, email string) error {
 
 	result.RowsAffected()
 	return nil
+}
+
+//CreateNewUser is...
+func (st *Store) CreateNewUser(user model.User) (model.BasicResponse, error) {
+	var res model.BasicResponse
+	err := db.CreateNewUser(st.dbconn, user)
+	if err != nil {
+		res.Success = false
+		return res, err
+	}
+	res.Success = true
+	return res, nil
 }

@@ -34,6 +34,7 @@ func Handler(dbconn *sql.DB) http.Handler {
 		userRouter.Post("/subscribe", controller.Subscription(st))
 		userRouter.Post("/blocked", controller.Blocked(st))
 		userRouter.Post("/send", controller.SendUpdate(st))
+		userRouter.Post("/addUser", controller.CreateNewUser(st))
 	})
 
 	return r

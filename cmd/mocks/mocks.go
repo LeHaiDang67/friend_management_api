@@ -99,3 +99,14 @@ func (st *Service) FriendList(email string) (model.FriendListResponse, error) {
 	}
 	return r0, r1
 }
+
+//CreateNewUser is...
+func (st *Service) CreateNewUser(user model.User) (model.BasicResponse, error) {
+	returnVals := st.Called(user)
+	r0 := returnVals.Get(0).(model.BasicResponse)
+	var r1 error
+	if returnVals.Get(1) != nil {
+		r1 = returnVals.Get(1).(error)
+	}
+	return r0, r1
+}

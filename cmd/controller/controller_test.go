@@ -334,3 +334,42 @@ func TestFriendList(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateNewUser(t *testing.T) {
+	var jsonStr = []byte(`{"email":"a@gmail.com"}`)
+	testCases := []struct {
+		name         string
+		bodyRequest  *bytes.Buffer
+		expectedBody string
+		mockresponse model.BasicResponse
+		mockError    error
+	}{
+		{
+			name:         "retieve success",
+			bodyRequest:  bytes.NewBuffer(jsonStr),
+			expectedBody: "{\"success\":true}\n",
+			mockresponse: model.BasicResponse{
+				Success: true,
+			},
+		},
+		{
+			name:         "retieve failed",
+			bodyRequest:  bytes.NewBuffer(jsonStr),
+			expectedBody: "{\"success\":false}\n",
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(http.MethodPost, "/friend/addUser", tt.bodyRequest)
+			require.NoError(t, err)
+			chiCtx := chi.NewRouter()
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, chiCtx))
+			rr := httptest.NewRecorder()
+			serviceMock := new(mocks.Service)
+			serviceMock.On("CreateNewUser", mock.Anything, mock.Anything).Return(tt.mockresponse, tt.mockError)
+			handler := CreateNewUser(serviceMock)
+			handler.ServeHTTP(rr, req)
+			require.Equal(t, tt.expectedBody, rr.Body.String())
+		})
+	}
+}

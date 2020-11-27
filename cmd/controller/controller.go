@@ -166,3 +166,24 @@ func SendUpdate(service services.IUserService) http.HandlerFunc {
 
 	})
 }
+
+//CreateNewUser is...
+func CreateNewUser(service services.IUserService) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var user model.User
+		err := json.NewDecoder(r.Body).Decode(&user)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Request body is invalid"))
+			return
+		}
+		result, err2 := service.CreateNewUser(user)
+		if err2 != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err2.Error()))
+			return
+		}
+		json.NewEncoder(w).Encode(result)
+		w.WriteHeader(http.StatusOK)
+	})
+}
