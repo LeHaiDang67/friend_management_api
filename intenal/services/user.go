@@ -41,12 +41,12 @@ func (st *Store) ConnectFriends(req model.FriendConnectionRequest) (model.BasicR
 	basicResponse := model.BasicResponse{}
 	//var service IUserService
 	userA, errA := db.GetTheUser(st.dbconn, req.Friends[0])
-	userB, errB := db.GetTheUser(st.dbconn, req.Friends[1])
 	if errA != nil {
 		fmt.Printf("Error QueryA: %s\n", errA)
 		basicResponse.Success = false
 		return basicResponse, errA
 	}
+	userB, errB := db.GetTheUser(st.dbconn, req.Friends[1])
 	if errB != nil {
 		fmt.Printf("Error QueryB: %s\n", errB)
 		basicResponse.Success = false
@@ -97,12 +97,12 @@ func (st *Store) FriendList(email string) (model.FriendListResponse, error) {
 func (st *Store) CommonFriends(commonFriends model.CommonFriendRequest) (model.FriendListResponse, error) {
 	var friendList model.FriendListResponse
 	userA, errA := db.GetTheUser(st.dbconn, commonFriends.Friends[0])
-	userB, errB := db.GetTheUser(st.dbconn, commonFriends.Friends[1])
 	if errA != nil {
 		fmt.Printf("Error QueryA: %s\n", errA)
 		friendList.Success = false
 		return friendList, errA
 	}
+	userB, errB := db.GetTheUser(st.dbconn, commonFriends.Friends[1])
 	if errB != nil {
 		fmt.Printf("Error QueryB: %s\n", errB)
 		friendList.Success = false
@@ -125,15 +125,15 @@ func (st *Store) CommonFriends(commonFriends model.CommonFriendRequest) (model.F
 //Subscription subscribe to updates from an email address.
 func (st *Store) Subscription(subRequest model.SubscriptionRequest) (model.BasicResponse, error) {
 	var basicResponse model.BasicResponse
-	userRequestor, errGetUser1 := db.GetTheUser(st.dbconn, subRequest.Requestor)
-	if errGetUser1 != nil {
+	userRequestor, errGetRequestor := db.GetTheUser(st.dbconn, subRequest.Requestor)
+	if errGetRequestor != nil {
 		basicResponse.Success = false
-		return basicResponse, errGetUser1
+		return basicResponse, errGetRequestor
 	}
-	userTarget, errGetUser2 := db.GetTheUser(st.dbconn, subRequest.Target)
-	if errGetUser2 != nil {
+	userTarget, errGetTarget := db.GetTheUser(st.dbconn, subRequest.Target)
+	if errGetTarget != nil {
 		basicResponse.Success = false
-		return basicResponse, errGetUser2
+		return basicResponse, errGetTarget
 	}
 	isUserRequestor := util.Contains(userRequestor.Subscription, userTarget.Email)
 	if !isUserRequestor {
@@ -151,15 +151,15 @@ func (st *Store) Subscription(subRequest model.SubscriptionRequest) (model.Basic
 //Blocked is  an API to block updates from an email address
 func (st *Store) Blocked(subRequest model.SubscriptionRequest) (model.BasicResponse, error) {
 	var basicResponse model.BasicResponse
-	userRequestor, errGetUser1 := db.GetTheUser(st.dbconn, subRequest.Requestor)
-	if errGetUser1 != nil {
+	userRequestor, errGetRequestor := db.GetTheUser(st.dbconn, subRequest.Requestor)
+	if errGetRequestor != nil {
 		basicResponse.Success = false
-		return basicResponse, errGetUser1
+		return basicResponse, errGetRequestor
 	}
-	userTarget, errGetUser2 := db.GetTheUser(st.dbconn, subRequest.Target)
-	if errGetUser2 != nil {
+	userTarget, errGetTarget := db.GetTheUser(st.dbconn, subRequest.Target)
+	if errGetTarget != nil {
 		basicResponse.Success = false
-		return basicResponse, errGetUser2
+		return basicResponse, errGetTarget
 	}
 	isUserRequestor := util.Contains(userRequestor.Blocked, userTarget.Email)
 	if !isUserRequestor {
@@ -178,16 +178,16 @@ func (st *Store) Blocked(subRequest model.SubscriptionRequest) (model.BasicRespo
 //SendUpdate retrieve all email addresses that can receive updates from an email address.
 func (st *Store) SendUpdate(sendRequest model.SendUpdateRequest) (model.SendUpdateResponse, error) {
 	var sendResponse model.SendUpdateResponse
-	sender, err1 := db.GetTheUser(st.dbconn, sendRequest.Sender)
-	if err1 != nil {
+	sender, errGetSender := db.GetTheUser(st.dbconn, sendRequest.Sender)
+	if errGetSender != nil {
 		sendResponse.Success = false
-		return sendResponse, nil
+		return sendResponse, errGetSender
 	}
 	Recipients := []string{}
-	allUser, err2 := db.GetListUsers(st.dbconn)
-	if err2 != nil {
+	allUser, errGetAllUser := db.GetListUsers(st.dbconn)
+	if errGetAllUser != nil {
 		sendResponse.Success = false
-		return sendResponse, nil
+		return sendResponse, errGetAllUser
 	}
 	for _, u := range allUser {
 		var isBlock = util.Contains(u.Blocked, sender.Email)
