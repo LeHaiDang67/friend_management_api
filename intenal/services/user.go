@@ -84,6 +84,7 @@ func (st *Store) FriendList(email string) (model.FriendListResponse, error) {
 	var friendList model.FriendListResponse
 	user, err := db.GetUserByEmail(st.dbconn, email)
 	if err != nil {
+		friendList.Success = false
 		return friendList, nil
 	}
 	friendList.Success = true
