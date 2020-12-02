@@ -24,6 +24,6 @@ api:
 	$(COMPOSE) up friend-api
 
 start:
-    go run -mod=readonly main.go
+	go run -mod=readonly main.go
 sleep:
 	sleep 5

@@ -7,6 +7,7 @@ import (
 	"friend_management/intenal/util"
 	"testing"
 
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,9 +19,9 @@ func TestGetAllUser(t *testing.T) {
 		expectedResult []model.User
 	}{
 		name:           "Get users success",
-		expectedResult: []model.User([]model.User{model.User{Email: "c@gmail.com", Friends: []string(nil), Subscription: []string(nil), Blocked: []string(nil)}, model.User{Email: "a@gmail.com", Friends: []string{"b@gmail.com"}, Subscription: []string(nil), Blocked: []string(nil)}, model.User{Email: "b@gmail.com", Friends: []string{"a@gmail.com"}, Subscription: []string(nil), Blocked: []string(nil)}, model.User{Email: "test-email@gmail.com", Friends: []string{"hero@gmail.com"}, Subscription: []string(nil), Blocked: []string(nil)}}),
+		expectedResult: []model.User([]model.User{model.User{Email: "a@gmail.com", Friends: []string{"b@gmail.com"}, Subscription: []string(nil), Blocked: []string(nil)}}),
 	}
-	//require.NoError(t, util.LoadFixture(db, "./testdata/01_get_user.sql"))
+	require.NoError(t, util.LoadFixture(db, "./testdata/01_get_user.sql"))
 	t.Run(testCase.name, func(t *testing.T) {
 		mn := NewManager(db)
 		result, err := mn.GetAllUsers()
@@ -48,7 +49,7 @@ func TestGetUser(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			desc:           "Should return no user",
+			desc:           "User not already existed",
 			givenUserEmail: "andy@example.com",
 			expectedResult: model.User{},
 			expectedError:  errors.New("sad"),
@@ -76,6 +77,7 @@ func TestConnectFriends(t *testing.T) {
 		name           string
 		request        model.FriendConnectionRequest
 		expectedResult model.BasicResponse
+		expectedError  error
 	}{
 		{
 			name: "Make friend successfully",
@@ -94,6 +96,7 @@ func TestConnectFriends(t *testing.T) {
 			expectedResult: model.BasicResponse{
 				Success: true,
 			},
+			expectedError: errors.New("Sad"),
 		},
 	}
 	require.NoError(t, util.LoadFixture(db, "./testdata/02_connect_friend.sql"))
@@ -102,10 +105,12 @@ func TestConnectFriends(t *testing.T) {
 			mn := NewManager(db)
 			result, err := mn.ConnectFriends(tt.request)
 			// then
-
-			require.Nil(t, err)
-			require.Equal(t, tt.expectedResult, result)
-
+			if err != nil {
+				require.Equal(t, tt.expectedError, err)
+			} else {
+				require.Nil(t, err)
+				require.Equal(t, tt.expectedResult, result)
+			}
 		})
 	}
 }
@@ -117,6 +122,7 @@ func TestFriendList(t *testing.T) {
 		name           string
 		givenUserEmail model.FriendListRequest
 		expectedResult model.FriendListResponse
+		expectedError  error
 	}{
 		{
 			name: "Retrieve success ",
@@ -135,6 +141,7 @@ func TestFriendList(t *testing.T) {
 			expectedResult: model.FriendListResponse{
 				Success: true,
 			},
+			expectedError: errors.New("Sad"),
 		},
 	}
 	require.NoError(t, util.LoadFixture(db, "./testdata/01_get_user.sql"))
@@ -143,10 +150,12 @@ func TestFriendList(t *testing.T) {
 			mn := NewManager(db)
 			result, err := mn.FriendList(tt.givenUserEmail)
 			// then
-
-			require.Nil(t, err)
-			require.Equal(t, tt.expectedResult, result)
-
+			if err != nil {
+				require.Equal(t, tt.expectedError, err)
+			} else {
+				require.Nil(t, err)
+				require.Equal(t, tt.expectedResult, result)
+			}
 		})
 	}
 }
@@ -158,6 +167,7 @@ func TestCommonFriends(t *testing.T) {
 		name           string
 		commonFriends  model.CommonFriendRequest
 		expectedResult model.FriendListResponse
+		expectedError  error
 	}{
 		{
 			name: "Retrieve success",
@@ -180,6 +190,7 @@ func TestCommonFriends(t *testing.T) {
 				Friends: []string{},
 				Count:   0,
 			},
+			expectedError: errors.New("Sad"),
 		},
 	}
 	require.NoError(t, util.LoadFixture(db, "./testdata/03_common_friend.sql"))
@@ -188,9 +199,12 @@ func TestCommonFriends(t *testing.T) {
 			mn := NewManager(db)
 			result, err := mn.CommonFriends(tt.commonFriends)
 			// then
-			require.Nil(t, err)
-			require.Equal(t, tt.expectedResult, result)
-
+			if err != nil {
+				require.Equal(t, tt.expectedError, err)
+			} else {
+				require.Nil(t, err)
+				require.Equal(t, tt.expectedResult, result)
+			}
 		})
 	}
 }
@@ -202,6 +216,7 @@ func TestSubscription(t *testing.T) {
 		name             string
 		subscribeRequest model.SubscriptionRequest
 		expectedResult   model.BasicResponse
+		expectedError    error
 	}{
 		{
 			name: "Retrieve success",
@@ -222,6 +237,7 @@ func TestSubscription(t *testing.T) {
 			expectedResult: model.BasicResponse{
 				Success: true,
 			},
+			expectedError: errors.New("Sad"),
 		},
 	}
 	require.NoError(t, util.LoadFixture(db, "./testdata/02_connect_friend.sql"))
@@ -230,9 +246,12 @@ func TestSubscription(t *testing.T) {
 			mn := NewManager(db)
 			result, err := mn.Subscription(tt.subscribeRequest)
 			// then
-			require.Nil(t, err)
-			require.Equal(t, tt.expectedResult, result)
-
+			if err != nil {
+				require.Equal(t, tt.expectedError, err)
+			} else {
+				require.Nil(t, err)
+				require.Equal(t, tt.expectedResult, result)
+			}
 		})
 	}
 }
@@ -244,6 +263,7 @@ func TestBlocked(t *testing.T) {
 		name           string
 		blockedRequest model.SubscriptionRequest
 		expectedResult model.BasicResponse
+		expectedError  error
 	}{
 		{
 			name: "Retrieve success",
@@ -264,6 +284,7 @@ func TestBlocked(t *testing.T) {
 			expectedResult: model.BasicResponse{
 				Success: true,
 			},
+			expectedError: errors.New("Sad"),
 		},
 	}
 	require.NoError(t, util.LoadFixture(db, "./testdata/02_connect_friend.sql"))
@@ -272,9 +293,12 @@ func TestBlocked(t *testing.T) {
 			mn := NewManager(db)
 			result, err := mn.Blocked(tt.blockedRequest)
 			// then
-			require.Nil(t, err)
-			require.Equal(t, tt.expectedResult, result)
-
+			if err != nil {
+				require.Equal(t, tt.expectedError, err)
+			} else {
+				require.Nil(t, err)
+				require.Equal(t, tt.expectedResult, result)
+			}
 		})
 	}
 }
@@ -286,6 +310,7 @@ func TestSendUpdate(t *testing.T) {
 		name           string
 		sendRequest    model.SendUpdateRequest
 		expectedResult model.SendUpdateResponse
+		expectedError  error
 	}{
 		{
 			name: "Retrieve success",
@@ -308,6 +333,7 @@ func TestSendUpdate(t *testing.T) {
 				Success:    true,
 				Recipients: []string{},
 			},
+			expectedError: errors.New("Sad"),
 		},
 	}
 	require.NoError(t, util.LoadFixture(db, "./testdata/03_common_friend.sql"))
@@ -316,9 +342,12 @@ func TestSendUpdate(t *testing.T) {
 			mn := NewManager(db)
 			result, err := mn.SendUpdate(tt.sendRequest)
 			// then
-			require.Nil(t, err)
-			require.Equal(t, tt.expectedResult, result)
-
+			if err != nil {
+				require.Equal(t, tt.expectedError, err)
+			} else {
+				require.Nil(t, err)
+				require.Equal(t, tt.expectedResult, result)
+			}
 		})
 	}
 
@@ -331,33 +360,40 @@ func TestCreateNewUser(t *testing.T) {
 		name           string
 		sendRequest    model.User
 		expectedResult model.BasicResponse
+		expectedError  error
 	}{
 		{
 			name: "Retrieve success",
+			sendRequest: model.User{
+				Email: "c@gmail.com",
+			},
+			expectedResult: model.BasicResponse{
+				Success: true,
+			},
+		},
+		{
+			name: "User already existed",
 			sendRequest: model.User{
 				Email: "a@gmail.com",
 			},
 			expectedResult: model.BasicResponse{
 				Success: true,
 			},
-		},
-		{
-			name:        "Retrieve faided",
-			sendRequest: model.User{},
-			expectedResult: model.BasicResponse{
-				Success: true,
-			},
+			expectedError: &pq.Error{Severity: "ERROR", Code: "23505", Message: "duplicate key value violates unique constraint \"users_pkey\"", Detail: "Key (email)=(a@gmail.com) already exists.", Hint: "", Position: "", InternalPosition: "", InternalQuery: "", Where: "", Schema: "public", Table: "users", Column: "", DataTypeName: "", Constraint: "users_pkey", File: "nbtinsert.c", Line: "432", Routine: "_bt_check_unique"},
 		},
 	}
-	require.NoError(t, util.LoadFixture(db, "./testdata/04_create_user.sql"))
+	require.NoError(t, util.LoadFixture(db, "./testdata/03_common_friend.sql"))
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			mn := NewManager(db)
 			result, err := mn.CreateNewUser(tt.sendRequest)
 			// then
-			require.Nil(t, err)
-			require.Equal(t, tt.expectedResult, result)
-
+			if err != nil {
+				require.Equal(t, tt.expectedError, err)
+			} else {
+				require.Nil(t, err)
+				require.Equal(t, tt.expectedResult, result)
+			}
 		})
 	}
 }
