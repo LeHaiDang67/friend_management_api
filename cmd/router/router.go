@@ -27,14 +27,14 @@ func Handler(dbconn *sql.DB) http.Handler {
 
 	r.Route("/friend", func(userRouter chi.Router) {
 		userRouter.Get("/", controller.GetUser(st))
-		userRouter.Get("/GetAll", controller.GetAllUsers(st))
+		userRouter.Get("/get-all", controller.GetAllUsers(st))
 		userRouter.Post("/connect", controller.ConnectFriends(st))
-		userRouter.Get("/list", controller.FriendList(st))
+		userRouter.Post("/list", controller.FriendList(st))
 		userRouter.Post("/common", controller.CommonFriends(st))
 		userRouter.Post("/subscribe", controller.Subscription(st))
 		userRouter.Post("/blocked", controller.Blocked(st))
 		userRouter.Post("/send", controller.SendUpdate(st))
-		userRouter.Post("/addUser", controller.CreateNewUser(st))
+		userRouter.Post("/user", controller.CreateNewUser(st))
 	})
 
 	return r
