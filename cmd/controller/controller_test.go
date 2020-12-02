@@ -121,7 +121,7 @@ func TestGetAllUsers(t *testing.T) {
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			req, err := http.NewRequest(http.MethodGet, "/friend/get-all", nil)
+			req, err := http.NewRequest(http.MethodGet, "/friend/get-all-users", nil)
 			require.NoError(t, err)
 			chiCtx := chi.NewRouter()
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, chiCtx))
