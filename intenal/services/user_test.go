@@ -115,12 +115,13 @@ func TestFriendList(t *testing.T) {
 	defer db.Close()
 	testCases := []struct {
 		name           string
-		givenUserEmail string
+		givenUserEmail model.FriendListRequest
 		expectedResult model.FriendListResponse
 	}{
 		{
-			name:           "Retrieve success ",
-			givenUserEmail: "a@gmail.com",
+			name: "Retrieve success ",
+			givenUserEmail: model.FriendListRequest{
+				Email: "a@gmail.com"},
 			expectedResult: model.FriendListResponse{
 				Success: true,
 				Friends: []string{"b@gmail.com"},
@@ -128,8 +129,9 @@ func TestFriendList(t *testing.T) {
 			},
 		},
 		{
-			name:           "Retrieve failed ",
-			givenUserEmail: "andy@example.com",
+			name: "Retrieve failed ",
+			givenUserEmail: model.FriendListRequest{
+				Email: "andy@gmail.com"},
 			expectedResult: model.FriendListResponse{
 				Success: true,
 			},

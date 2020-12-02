@@ -20,7 +20,7 @@ type IUserService interface {
 	Blocked(subRequest model.SubscriptionRequest) (model.BasicResponse, error)
 	Subscription(subRequest model.SubscriptionRequest) (model.BasicResponse, error)
 	CommonFriends(commonFriends model.CommonFriendRequest) (model.FriendListResponse, error)
-	FriendList(email string) (model.FriendListResponse, error)
+	FriendList(email model.FriendListRequest) (model.FriendListResponse, error)
 	CreateNewUser(user model.User) (model.BasicResponse, error)
 }
 
@@ -80,7 +80,7 @@ func (st *Store) ConnectFriends(req model.FriendConnectionRequest) (model.BasicR
 }
 
 //FriendList show friend list
-func (st *Store) FriendList(email string) (model.FriendListResponse, error) {
+func (st *Store) FriendList(email model.FriendListRequest) (model.FriendListResponse, error) {
 	var friendList model.FriendListResponse
 	user, err := db.GetUserByEmail(st.dbconn, email)
 	if err != nil {

@@ -64,8 +64,15 @@ func ConnectFriends(service services.IUserService) http.HandlerFunc {
 //FriendList is...
 func FriendList(service services.IUserService) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		email := r.URL.Query().Get("email")
-		friendList, err := service.FriendList(email)
+		//email := r.URL.Query().Get("email")
+		var user model.FriendListRequest
+		errRequest := json.NewDecoder(r.Body).Decode(&user)
+		if errRequest != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Request body is invalid"))
+			return
+		}
+		friendList, err := service.FriendList(user)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))

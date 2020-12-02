@@ -90,7 +90,7 @@ func (st *Service) CommonFriends(commonFriends model.CommonFriendRequest) (model
 }
 
 //FriendList is...
-func (st *Service) FriendList(email string) (model.FriendListResponse, error) {
+func (st *Service) FriendList(email model.FriendListRequest) (model.FriendListResponse, error) {
 	returnVals := st.Called(email)
 	r0 := returnVals.Get(0).(model.FriendListResponse)
 	var r1 error

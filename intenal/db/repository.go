@@ -8,10 +8,10 @@ import (
 )
 
 //GetUserByEmail executes retrieve the friends list for an email address
-func GetUserByEmail(db *sql.DB, email string) (*model.User, error) {
+func GetUserByEmail(db *sql.DB, email model.FriendListRequest) (*model.User, error) {
 	user := &model.User{}
 	var friendList model.FriendListResponse
-	r, err1 := db.Query("select * from users where email = $1", email)
+	r, err1 := db.Query("select * from users where email = $1", email.Email)
 	if err1 != nil {
 		friendList.Success = false
 		return user, err1
