@@ -49,10 +49,10 @@ func TestGetUser(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			desc:           "User not already existed",
+			desc:           "User not existed",
 			givenUserEmail: "andy@example.com",
 			expectedResult: model.User{},
-			expectedError:  errors.New("sad"),
+			expectedError:  errors.New("User not existed"),
 		},
 	}
 	require.NoError(t, util.LoadFixture(db, "./testdata/01_get_user.sql"))
@@ -94,9 +94,9 @@ func TestConnectFriends(t *testing.T) {
 				Friends: []string{"test1@gmail.com", "test2@gmail.com"},
 			},
 			expectedResult: model.BasicResponse{
-				Success: true,
+				Success: false,
 			},
-			expectedError: errors.New("Sad"),
+			expectedError: errors.New("User not existed"),
 		},
 	}
 	require.NoError(t, util.LoadFixture(db, "./testdata/02_connect_friend.sql"))
@@ -135,13 +135,13 @@ func TestFriendList(t *testing.T) {
 			},
 		},
 		{
-			name: "Retrieve failed ",
+			name: "User not existed ",
 			givenUserEmail: model.FriendListRequest{
 				Email: "andy@gmail.com"},
 			expectedResult: model.FriendListResponse{
-				Success: true,
+				Success: false,
 			},
-			expectedError: errors.New("Sad"),
+			expectedError: errors.New("User not existed"),
 		},
 	}
 	require.NoError(t, util.LoadFixture(db, "./testdata/01_get_user.sql"))
@@ -186,11 +186,9 @@ func TestCommonFriends(t *testing.T) {
 				Friends: []string{"messi@gmail.com", "ronaldo@gmail.com"},
 			},
 			expectedResult: model.FriendListResponse{
-				Success: true,
-				Friends: []string{},
-				Count:   0,
+				Success: false,
 			},
-			expectedError: errors.New("Sad"),
+			expectedError: errors.New("Users not existed"),
 		},
 	}
 	require.NoError(t, util.LoadFixture(db, "./testdata/03_common_friend.sql"))
@@ -235,9 +233,9 @@ func TestSubscription(t *testing.T) {
 				Target:    "dang@gmail.com",
 			},
 			expectedResult: model.BasicResponse{
-				Success: true,
+				Success: false,
 			},
-			expectedError: errors.New("Sad"),
+			expectedError: errors.New("Users not existed"),
 		},
 	}
 	require.NoError(t, util.LoadFixture(db, "./testdata/02_connect_friend.sql"))
@@ -282,9 +280,9 @@ func TestBlocked(t *testing.T) {
 				Target:    "dang@gmail.com",
 			},
 			expectedResult: model.BasicResponse{
-				Success: true,
+				Success: false,
 			},
-			expectedError: errors.New("Sad"),
+			expectedError: errors.New("Users not existed"),
 		},
 	}
 	require.NoError(t, util.LoadFixture(db, "./testdata/02_connect_friend.sql"))
@@ -330,10 +328,9 @@ func TestSendUpdate(t *testing.T) {
 				Text:   "Hello World! messi@gmail.com",
 			},
 			expectedResult: model.SendUpdateResponse{
-				Success:    true,
-				Recipients: []string{},
+				Success: false,
 			},
-			expectedError: errors.New("Sad"),
+			expectedError: errors.New("Users not existed"),
 		},
 	}
 	require.NoError(t, util.LoadFixture(db, "./testdata/03_common_friend.sql"))
@@ -377,7 +374,7 @@ func TestCreateNewUser(t *testing.T) {
 				Email: "a@gmail.com",
 			},
 			expectedResult: model.BasicResponse{
-				Success: true,
+				Success: false,
 			},
 			expectedError: &pq.Error{Severity: "ERROR", Code: "23505", Message: "duplicate key value violates unique constraint \"users_pkey\"", Detail: "Key (email)=(a@gmail.com) already exists.", Hint: "", Position: "", InternalPosition: "", InternalQuery: "", Where: "", Schema: "public", Table: "users", Column: "", DataTypeName: "", Constraint: "users_pkey", File: "nbtinsert.c", Line: "432", Routine: "_bt_check_unique"},
 		},
